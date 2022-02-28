@@ -22,16 +22,6 @@ router.post("/new", async function (req, res, next) {
 		return;
 	}
 
-	console.log(
-		creatorAddress,
-		url,
-		urlMetadata,
-		groupAddress,
-		marketSignature,
-		marketData,
-		marketIdentifier
-	);
-
 	const post = await models.Post.findPostAndUpdate(
 		{
 			url,
@@ -54,7 +44,7 @@ router.post("/new", async function (req, res, next) {
 	});
 });
 
-router.post("/findPosts", async function (req, res) {
+router.post("/findUrlsInfo", async function (req, res) {
 	const { urls } = req.body;
 
 	const posts = await models.Post.find({
@@ -67,9 +57,10 @@ router.post("/findPosts", async function (req, res) {
 	// mark urls not found with status not found
 	urls.forEach((u) => {
 		const post = posts.find((p) => p.url == u);
+
 		if (post != undefined) {
 			finalRes.push({
-				...post,
+				...post._doc,
 				qStatus: constants.QUERY_STATUS.FOUND,
 			});
 		} else {
@@ -84,6 +75,19 @@ router.post("/findPosts", async function (req, res) {
 		success: true,
 		response: {
 			posts: finalRes,
+		},
+	});
+});
+
+router.post("/find", async function (req, res) {
+	const { filter, sort } = req.body;
+
+	const posts = await models.Post.findPostsByFilter(filter, sort);
+
+	res.status(200).send({
+		success: true,
+		response: {
+			posts: posts,
 		},
 	});
 });

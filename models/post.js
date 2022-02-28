@@ -45,14 +45,6 @@ PostSchema.statics.findPostsByFilter = function (filter, sort) {
 		{
 			$sort: sort,
 		},
-		{
-			$lookup: {
-				from: "groups",
-				localField: "groupAddress",
-				foreignField: "groupAddress",
-				as: "group",
-			},
-		},
 	]);
 };
 
