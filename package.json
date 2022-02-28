@@ -1,0 +1,25 @@
+{
+	"name": "COCO extension backend",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node index.js"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@gnosis.pm/safe-core-sdk": "^2.0.0",
+		"@gnosis.pm/safe-service-client": "^1.1.1",
+		"aws-sdk": "^2.1038.0",
+		"cors": "^2.8.5",
+		"crypto-js": "^4.1.1",
+		"dotenv": "^10.0.0",
+		"express": "^4.17.1",
+		"mongoose": "^6.0.12",
+		"morgan": "^1.10.0",
+		"web3": "^1.6.0",
+		"winston": "^3.6.0"
+	}
+}
