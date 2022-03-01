@@ -211,7 +211,3 @@ module.exports = {
 	toCheckSumAddress,
 	checkUserOwnsSafeAddress,
 };
-
-/**
- * S3 bucket
- */

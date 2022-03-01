@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const { keccak256 } = require("./../helpers");
+const { queryMarketsByMarketIdentifiers } = require("./../graphql");
 const { models } = require("./../models/index");
 const constants = require("../utils/constants");
 
@@ -47,21 +48,41 @@ router.post("/new", async function (req, res, next) {
 router.post("/findUrlsInfo", async function (req, res) {
 	const { urls } = req.body;
 
+	// query posts from backend
 	const posts = await models.Post.find({
 		url: urls,
 	});
 
+	// query markets using marketIdentifiers
+	const markets = await queryMarketsByMarketIdentifiers(
+		urls.map((url) => keccak256(url))
+	);
+
 	// response
 	let finalRes = [];
 
-	// mark urls not found with status not found
+	// prepare final res
+	// 1. If url isn't found in posts then mark qStatus=NOT_FOUND, otherwise=FOUND
+	// 2. Prepare onChainData for posts that have market onchain
 	urls.forEach((u) => {
 		const post = posts.find((p) => p.url == u);
 
 		if (post != undefined) {
+			// find market of post if it exists on chain
+			const market = markets.find(
+				(m) => m.marketIdentifier == post.marketIdentifier
+			);
 			finalRes.push({
 				...post._doc,
 				qStatus: constants.QUERY_STATUS.FOUND,
+				onChainData: market
+					? {
+							...market,
+							existsOnChain: true,
+					  }
+					: {
+							existsOnChain: false,
+					  },
 			});
 		} else {
 			finalRes.push({
