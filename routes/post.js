@@ -46,7 +46,12 @@ router.post("/new", async function (req, res, next) {
 });
 
 router.post("/findUrlsInfo", async function (req, res) {
-	const { urls } = req.body;
+	const { urlObjects } = req.body;
+
+	console.log(urlObjects, " jkl");
+
+	// get the urls
+	const urls = urlObjects.map((obj) => obj.url);
 
 	// query posts from backend
 	const posts = await models.Post.find({
@@ -64,8 +69,8 @@ router.post("/findUrlsInfo", async function (req, res) {
 	// prepare final res
 	// 1. If url isn't found in posts then mark qStatus=NOT_FOUND, otherwise=FOUND
 	// 2. Prepare onChainData for posts that have market onchain
-	urls.forEach((u) => {
-		const post = posts.find((p) => p.url == u);
+	urlObjects.forEach((obj) => {
+		const post = posts.find((p) => p.url == obj.url);
 
 		if (post != undefined) {
 			// find market of post if it exists on chain
@@ -73,6 +78,7 @@ router.post("/findUrlsInfo", async function (req, res) {
 				(m) => m.marketIdentifier == post.marketIdentifier
 			);
 			finalRes.push({
+				...obj,
 				...post._doc,
 				qStatus: constants.QUERY_STATUS.FOUND,
 				onChainData: market
@@ -86,11 +92,13 @@ router.post("/findUrlsInfo", async function (req, res) {
 			});
 		} else {
 			finalRes.push({
-				url: u,
+				...obj,
 				qStatus: constants.QUERY_STATUS.NOT_FOUND,
 			});
 		}
 	});
+
+	console.log(finalRes, " this is final res ");
 
 	res.status(200).send({
 		success: true,
