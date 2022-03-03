@@ -19,8 +19,6 @@ const morganMiddleware = morgan(
 	}
 );
 
-let intervalObj;
-
 var app = express();
 
 app.use(cors());
@@ -29,6 +27,7 @@ app.use(json());
 app.use(morganMiddleware);
 
 app.use("/post", routes.post);
+app.use("/helper", routes.helper);
 
 async function main() {
 	try {
@@ -44,5 +43,5 @@ async function main() {
 }
 
 main().catch((err) => {
-	clearInterval(intervalObj);
+	console.log(err);
 });

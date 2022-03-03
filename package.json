@@ -10,9 +10,11 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@devmehq/open-graph-extractor": "^1.0.1",
 		"@gnosis.pm/safe-core-sdk": "^2.0.0",
 		"@gnosis.pm/safe-service-client": "^1.1.1",
 		"aws-sdk": "^2.1038.0",
+		"axios": "^0.26.0",
 		"cors": "^2.8.5",
 		"crypto-js": "^4.1.1",
 		"dotenv": "^10.0.0",

@@ -5,12 +5,24 @@ const SafeServiceClient = require("@gnosis.pm/safe-service-client/dist/src/SafeS
 const ORACLE_FACTORY_ADDRESS = "0x35858C861564F072724658458C1c9C22F5506c36";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const { logger } = require("./logger");
+const { default: axios } = require("axios");
+const { extractOpenGraph } = require("@devmehq/open-graph-extractor");
 
 // safe configs
 const safeService = new SafeServiceClient.default(process.env.SAFE_TXS_URL);
 
 async function strToHash(str) {
 	return web3.utils.asciiToHex(str);
+}
+
+async function getUrlsMetdataObj(urls) {
+	let metadataArr = {};
+	for (let i = 0; i < urls.length; i++) {
+		let { data } = await axios.get(urls[i]);
+		const openGraphData = extractOpenGraph(data);
+		metadataArr[urls[i]] = openGraphData;
+	}
+	return metadataArr;
 }
 
 function marketIdentifierFrom(creatorAddress, eventIdentifier, oracleAddress) {
@@ -210,4 +222,5 @@ module.exports = {
 	marketIdentifierFrom,
 	toCheckSumAddress,
 	checkUserOwnsSafeAddress,
+	getUrlsMetdataObj,
 };

@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { keccak256 } = require("./../helpers");
+const { keccak256, getUrlsMetdataObj } = require("./../helpers");
 const { queryMarketsByMarketIdentifiers } = require("./../graphql");
 const { models } = require("./../models/index");
 const constants = require("../utils/constants");
@@ -45,7 +45,7 @@ router.post("/new", async function (req, res, next) {
 	});
 });
 
-router.post("/findUrlsInfo", async function (req, res) {
+router.post("/findUrlsInfoT", async function (req, res) {
 	const { urlObjects } = req.body;
 
 	console.log(urlObjects, " jkl");
@@ -99,6 +99,69 @@ router.post("/findUrlsInfo", async function (req, res) {
 	});
 
 	console.log(finalRes, " this is final res ");
+
+	res.status(200).send({
+		success: true,
+		response: {
+			posts: finalRes,
+		},
+	});
+});
+
+// remove this later
+router.post("/findUrlsInfo", async function (req, res) {
+	const { urls } = req.body;
+
+	// query posts from backend
+	const posts = await models.Post.find({
+		url: urls,
+	});
+
+	// query markets using marketIdentifiers
+	const markets = await queryMarketsByMarketIdentifiers(
+		urls.map((url) => keccak256(url))
+	);
+
+	// get urls metadata
+	const urlsMetadataObj = await getUrlsMetdataObj(urls);
+
+	// response
+	let finalRes = [];
+
+	// prepare final res
+	// 1. If url isn't found in posts then mark qStatus=NOT_FOUND, otherwise=FOUND
+	// 2. Prepare onChainData for posts that have market onchain
+	urls.forEach((u) => {
+		const post = posts.find((p) => p.url == u);
+		const metadata = urlsMetadataObj[u];
+
+		if (post != undefined) {
+			// find market of post if it exists on chain
+			const market = markets.find(
+				(m) => m.marketIdentifier == post.marketIdentifier
+			);
+			finalRes.push({
+				url: u,
+				metdata: metadata,
+				post: post._doc,
+				onChainData: market
+					? {
+							...market,
+							existsOnChain: true,
+					  }
+					: {
+							existsOnChain: false,
+					  },
+				qStatus: constants.QUERY_STATUS.FOUND,
+			});
+		} else {
+			finalRes.push({
+				url: u,
+				metdata: metadata,
+				qStatus: constants.QUERY_STATUS.NOT_FOUND,
+			});
+		}
+	});
 
 	res.status(200).send({
 		success: true,

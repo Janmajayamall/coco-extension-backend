@@ -10,11 +10,6 @@ const PostSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		urlMetadata: {
-			type: String,
-			required: true,
-		},
-		// marketIdentifier = keccak256(url)
 		marketIdentifier: {
 			type: String,
 			required: true,
