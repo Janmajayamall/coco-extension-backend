@@ -6,6 +6,7 @@ const ORACLE_FACTORY_ADDRESS = "0x35858C861564F072724658458C1c9C22F5506c36";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const { logger } = require("./logger");
 const ogs = require("open-graph-scraper");
+const { models } = require("./models");
 
 // safe configs
 const safeService = new SafeServiceClient.default(process.env.SAFE_TXS_URL);
@@ -16,11 +17,60 @@ async function strToHash(str) {
 
 async function getUrlsMetadata(urls) {
 	let metadataArr = [];
+	let newUrlsMetadata = [];
+
+	// get urls cache
+	// TODO - implement cache invalidation sometime later
+	const urlsCache = await models.UrlCache.findByFilter({
+		url: { $in: urls },
+	});
+
 	for (let i = 0; i < urls.length; i++) {
-		const response = await ogs({ url: urls[i] });
-		metadataArr.push(response.result);
+		// check cache hit
+		const cacheHit = urlsCache.find((obj) => {
+			return obj.url == urls[i];
+		});
+
+		if (cacheHit != undefined) {
+			console.log("Cache hit", urls[i]);
+
+			// cache is stored in stringified form
+			metadataArr.push(JSON.parse(cacheHit.cache));
+		} else {
+			console.log("Cache did not hit", urls[i]);
+			// request metadata fro, url
+			const response = await ogs({ url: urls[i] });
+			metadataArr.push(response.result);
+
+			// add metadata to new urls metadata
+			// for updating cache
+			newUrlsMetadata.push(response.result);
+		}
 	}
+
+	// update cache
+	await updateUrlsCache(newUrlsMetadata);
+
 	return metadataArr;
+}
+
+async function updateUrlsCache(urlsCache) {
+	// bulk write ops
+	const ops = urlsCache.map((cache) => {
+		return {
+			updateMany: {
+				filter: {
+					url: cache.requestUrl,
+				},
+				update: {
+					url: cache.requestUrl,
+					cache: JSON.stringify(cache),
+				},
+				upsert: true,
+			},
+		};
+	});
+	await models.UrlCache.bulkWrite(ops);
 }
 
 function marketIdentifierFrom(creatorAddress, eventIdentifier, oracleAddress) {

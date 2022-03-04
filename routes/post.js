@@ -170,7 +170,7 @@ router.post("/findUrlsInfo", async function (req, res) {
 			};
 		}
 	});
-
+	console.log(finalRes, " finalRes ");
 	res.status(200).send({
 		success: true,
 		response: {

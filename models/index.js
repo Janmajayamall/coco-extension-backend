@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Post = require("./post");
+const UrlCache = require("./urlCache");
 
 const connectDb = () => {
 	let options = {};
@@ -16,7 +17,7 @@ const connectDb = () => {
 	return mongoose.connect(process.env.DB_URI, options);
 };
 
-const models = { Post };
+const models = { Post, UrlCache };
 
 module.exports = {
 	connectDb,
