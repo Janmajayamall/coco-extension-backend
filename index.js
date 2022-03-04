@@ -6,6 +6,7 @@ var cors = require("cors");
 const routes = require("./routes");
 const morgan = require("morgan");
 const { logger } = require("./logger");
+const { getUrlsMetdataObj } = require("./helpers");
 
 const port = process.env.PORT || 8080;
 
