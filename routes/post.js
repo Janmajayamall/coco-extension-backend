@@ -189,6 +189,8 @@ router.post("/find", async function (req, res) {
 		});
 	});
 
+	console.log(finalRes);
+
 	res.status(200).send({
 		success: true,
 		response: {
