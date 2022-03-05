@@ -16,42 +16,47 @@ async function strToHash(str) {
 }
 
 async function getUrlsMetadata(urls) {
-	let metadataArr = [];
-	let newUrlsMetadata = [];
+	try {
+		let metadataArr = [];
+		let newUrlsMetadata = [];
 
-	// get urls cache
-	// TODO - implement cache invalidation sometime later
-	const urlsCache = await models.UrlCache.findByFilter({
-		url: { $in: urls },
-	});
-
-	for (let i = 0; i < urls.length; i++) {
-		// check cache hit
-		const cacheHit = urlsCache.find((obj) => {
-			return obj.url == urls[i];
+		// get urls cache
+		// TODO - implement cache invalidation sometime later
+		const urlsCache = await models.UrlCache.findByFilter({
+			url: { $in: urls },
 		});
 
-		if (cacheHit != undefined) {
-			console.log("Cache hit", urls[i]);
+		for (let i = 0; i < urls.length; i++) {
+			// check cache hit
+			const cacheHit = urlsCache.find((obj) => {
+				return obj.url == urls[i];
+			});
 
-			// cache is stored in stringified form
-			metadataArr.push(JSON.parse(cacheHit.cache));
-		} else {
-			console.log("Cache did not hit", urls[i]);
-			// request metadata fro, url
-			const response = await ogs({ url: urls[i] });
-			metadataArr.push(response.result);
+			if (cacheHit != undefined) {
+				console.log("Cache hit", urls[i]);
 
-			// add metadata to new urls metadata
-			// for updating cache
-			newUrlsMetadata.push(response.result);
+				// cache is stored in stringified form
+				metadataArr.push(JSON.parse(cacheHit.cache));
+			} else {
+				console.log("Cache did not hit", urls[i]);
+				// request metadata fro, url
+				const response = await ogs({ url: urls[i] });
+				metadataArr.push(response.result);
+
+				// add metadata to new urls metadata
+				// for updating cache
+				newUrlsMetadata.push(response.result);
+			}
 		}
+
+		// update cache
+		await updateUrlsCache(newUrlsMetadata);
+
+		return metadataArr;
+	} catch (e) {
+		logger.error(`[getUrlsMetadata] ${JSON.stringify(e)}`);
+		return [];
 	}
-
-	// update cache
-	await updateUrlsCache(newUrlsMetadata);
-
-	return metadataArr;
 }
 
 async function updateUrlsCache(urlsCache) {
