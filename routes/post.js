@@ -5,14 +5,8 @@ const { models } = require("./../models/index");
 const constants = require("../utils/constants");
 
 router.post("/new", async function (req, res, next) {
-	let {
-		creatorAddress,
-		url,
-		urlMetadata,
-		groupAddress,
-		marketSignature,
-		marketData,
-	} = req.body;
+	let { creatorAddress, url, groupAddress, marketSignature, marketData } =
+		req.body;
 	groupAddress = groupAddress.toLowerCase();
 	creatorAddress = creatorAddress.toLowerCase();
 
@@ -29,7 +23,6 @@ router.post("/new", async function (req, res, next) {
 		},
 		{
 			creatorAddress,
-			urlMetadata,
 			marketIdentifier,
 			groupAddress,
 			marketSignature,
@@ -184,10 +177,22 @@ router.post("/find", async function (req, res) {
 
 	const posts = await models.Post.findPostsByFilter(filter, sort);
 
+	// get post urls metadata
+	const urlsMetadata = await getUrlsMetadata(posts.map((p) => p.url));
+
+	// finalRes
+	const finalRes = [];
+	posts.forEach((post, index) => {
+		finalRes.push({
+			post: post,
+			metadata: urlsMetadata[index],
+		});
+	});
+
 	res.status(200).send({
 		success: true,
 		response: {
-			posts: posts,
+			posts: finalRes,
 		},
 	});
 });
