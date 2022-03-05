@@ -151,6 +151,7 @@ router.post("/findUrlsInfo", async function (req, res) {
 					  }
 					: {
 							existsOnChain: false,
+							outcome: 1, // outcome == 1 because the link hasn't received any challenge
 					  },
 				qStatus: constants.QUERY_STATUS.FOUND,
 			};
