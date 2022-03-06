@@ -33,12 +33,9 @@ async function getUrlsMetadata(urls) {
 			});
 
 			if (cacheHit != undefined) {
-				console.log("Cache hit", urls[i]);
-
 				// cache is stored in stringified form
 				metadataArr.push(JSON.parse(cacheHit.cache));
 			} else {
-				console.log("Cache did not hit", urls[i]);
 				// request metadata fro, url
 				const response = await ogs({ url: urls[i] });
 				metadataArr.push(response.result);

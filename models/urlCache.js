@@ -17,7 +17,6 @@ const UrlCacheSchema = new mongoose.Schema(
 );
 
 UrlCacheSchema.statics.findByFilter = function (filter) {
-	console.log(filter, " filter received");
 	return this.aggregate([
 		{
 			$match: filter,

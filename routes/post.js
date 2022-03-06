@@ -38,74 +38,10 @@ router.post("/new", async function (req, res, next) {
 	});
 });
 
-router.post("/findUrlsInfoT", async function (req, res) {
-	const { urlObjects } = req.body;
-
-	console.log(urlObjects, " jkl");
-
-	// get the urls
-	const urls = urlObjects.map((obj) => obj.url);
-
-	// query posts from backend
-	const posts = await models.Post.find({
-		url: urls,
-	});
-
-	// query markets using marketIdentifiers
-	const markets = await queryMarketsByMarketIdentifiers(
-		urls.map((url) => keccak256(url))
-	);
-
-	// response
-	let finalRes = [];
-
-	// prepare final res
-	// 1. If url isn't found in posts then mark qStatus=NOT_FOUND, otherwise=FOUND
-	// 2. Prepare onChainData for posts that have market onchain
-	urlObjects.forEach((obj) => {
-		const post = posts.find((p) => p.url == obj.url);
-
-		if (post != undefined) {
-			// find market of post if it exists on chain
-			const market = markets.find(
-				(m) => m.marketIdentifier == post.marketIdentifier
-			);
-			finalRes.push({
-				...obj,
-				...post._doc,
-				qStatus: constants.QUERY_STATUS.FOUND,
-				onChainData: market
-					? {
-							...market,
-							existsOnChain: true,
-					  }
-					: {
-							existsOnChain: false,
-					  },
-			});
-		} else {
-			finalRes.push({
-				...obj,
-				qStatus: constants.QUERY_STATUS.NOT_FOUND,
-			});
-		}
-	});
-
-	console.log(finalRes, " this is final res ");
-
-	res.status(200).send({
-		success: true,
-		response: {
-			urlsInfo: finalRes,
-		},
-	});
-});
-
 function originalUrl(metadata) {
 	return metadata.ogUrl ? metadata.ogUrl : metadata.requestUrl;
 }
 
-// remove this later
 router.post("/findUrlsInfo", async function (req, res) {
 	const { urls } = req.body;
 
@@ -164,7 +100,7 @@ router.post("/findUrlsInfo", async function (req, res) {
 			};
 		}
 	});
-	console.log(finalRes, " finalRes ");
+
 	res.status(200).send({
 		success: true,
 		response: {
@@ -189,8 +125,6 @@ router.post("/find", async function (req, res) {
 			metadata: urlsMetadata[index],
 		});
 	});
-
-	console.log(finalRes);
 
 	res.status(200).send({
 		success: true,
