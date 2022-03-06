@@ -5,8 +5,9 @@ const SafeServiceClient = require("@gnosis.pm/safe-service-client/dist/src/SafeS
 const ORACLE_FACTORY_ADDRESS = "0x35858C861564F072724658458C1c9C22F5506c36";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const { logger } = require("./logger");
-const ogs = require("open-graph-scraper");
 const { models } = require("./models");
+const { default: axios } = require("axios");
+const { extractOpenGraph } = require("@devmehq/open-graph-extractor");
 
 // safe configs
 const safeService = new SafeServiceClient.default(process.env.SAFE_TXS_URL);
@@ -36,13 +37,18 @@ async function getUrlsMetadata(urls) {
 				// cache is stored in stringified form
 				metadataArr.push(JSON.parse(cacheHit.cache));
 			} else {
-				// request metadata fro, url
-				const response = await ogs({ url: urls[i] });
-				metadataArr.push(response.result);
+				// request metadata from url
+				const { data: html } = await axios.get(urls[i]);
+				const openGraph = {
+					requestUrl: urls[i],
+					...extractOpenGraph(html),
+				};
+
+				metadataArr.push(openGraph);
 
 				// add metadata to new urls metadata
 				// for updating cache
-				newUrlsMetadata.push(response.result);
+				newUrlsMetadata.push(openGraph);
 			}
 		}
 
