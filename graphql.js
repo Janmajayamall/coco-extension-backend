@@ -1,8 +1,6 @@
 const { GraphQLClient, gql } = require("graphql-request");
 
-const endpoint =
-	"https://api.thegraph.com/subgraphs/name/janmajayamall/pm-content-test";
-const client = new GraphQLClient(endpoint);
+const client = new GraphQLClient(process.env.GRAPHQL_ENDPOINT);
 
 const QueryMarketByMarketIdentifier = gql`
 	query ($marketIdentifiers: [Bytes!]!) {
@@ -28,7 +26,7 @@ async function queryMarketsByMarketIdentifiers(marketIdentifiers) {
 	const res = await client.request(QueryMarketByMarketIdentifier, {
 		marketIdentifiers,
 	});
-	return res.markets
+	return res.markets;
 }
 
 module.exports = {
